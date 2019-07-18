@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from connectMysql.connect import dfInit
 from connectMysql.connect import Difuid
 from connectMysql.connect import seller
-from connectMysql.connect import Difuyhid,payMethod,xzdfyh
+from connectMysql.connect import Difuyhid,payMethod,xzdfyh,pt,xzdfsj
 import time
 
 date=input('请输入时间：')
@@ -19,6 +19,7 @@ df=dfInit(starttime,endtime,8)
 plt.rcParams['font.sans-serif']=['SimHei']
 
 # 京东商品销量前几商品
+
 plt.figure()
 ls=Difuid(jddf)
 l=ls[0]
@@ -27,6 +28,8 @@ goodName=ls[1]
 l.reverse()
 name=[i[0] for i in l]
 colleges=[i[1] for i in l]
+
+
 fig,ax=plt.subplots()
 fig.tight_layout()
 b=ax.barh(range(len(name)),colleges)
@@ -42,11 +45,12 @@ plt.title(date+'百望商城京东商品销售量前10商品')
 #设置Y轴刻度线标签
 ax.set_yticks(range(len(name)))
 ax.set_yticklabels(name)
-plt.annotate(r'$author:zxz$',(0,0),color='#C4C4C4')
+plt.annotate(r'$author:Ariel$',(0,0),color='#C4C4C4')
 print('百望商城京东商品销售量前10商品')
 print('#########################################')
 for i in range(len(goodName)):
-    print('销售量第'+str(i+1)+':'+goodName[i]+'     销量'+str(xl[i][1]))
+    print('销售量第'+str(i+1)+':'+goodName[i]+'     销量：'+str(xl[i][1]))
+plt.show()
 
 
 # 百望商品销量前几商品
@@ -73,11 +77,12 @@ plt.title(date+'百望商城百望商品销售量前10商品')
 #设置Y轴刻度线标签
 ax.set_yticks(range(len(name)))
 ax.set_yticklabels(name)
-plt.annotate(r'$author:zxz$',(0,0),color='#FF69B4')
+plt.annotate(r'$author:Ariel$',(0,0),color='#C4C4C4')
 print('\n百望商城百望商品销售量前10商品')
 
 for i in range(len(goodName)):
     print('销售量第'+str(i+1)+':'+goodName[i]+'     销量:'+str(xl[i][1]))
+plt.show()
 
 # 百望商家销售额高商家
 plt.figure()
@@ -99,7 +104,8 @@ plt.ylabel('商户名称')
 plt.title(date+'百望商城销售额前10商家')
 ax.set_yticks(range(len(sname)))
 ax.set_yticklabels(sname)
-plt.annotate(r'$author:zxz$',(250,0),color='#C4C4C4')
+plt.annotate(r'$author:Ariel$',(0,0),color='#C4C4C4')
+plt.show()
 
 # 参与人数与购买力
 plt.figure()
@@ -122,26 +128,20 @@ plt.ylabel('账号id')
 plt.title(date+'百望商城购买力Max前10用户参与人数：'+str(yhs[0]))
 ax.set_yticks(range(len(yhname)))
 ax.set_yticklabels(yhname)
-plt.annotate(r'$author:zxz$',(250,0),color='#C4C4C4')
+plt.annotate(r'$author:Ariel$',(250,0),color='#C4C4C4')
 plt.show()
 
 
 # 支付方式饼状图
 plt.figure()
 paymethod=payMethod(df)
-wx=0
-for i in paymethod:
-    if '微信' in i[0]:
-        wx+=i[1]
-        paymethod.remove(i)
-paymethod.append(('微信支付',wx))
-print(paymethod)
 plt.rcParams['font.sans-serif']=['SimHei']
 plt.figure()
 plt.pie([i[1] for i in paymethod],labels=[i[0]+str(i[1]) for i in paymethod],startangle=90,autopct='%1.1f%%')
 plt.title('百望商城'+date+'支付方式')
-plt.annotate(r'$author:zxz$',(-0.5,0),color='#C4C4C4')
+plt.annotate(r'$author:Ariel$',(-0.5,0),color='#C4C4C4')
 plt.legend()
+plt.show()
 
 # 订单量饼状图
 plt.figure()
@@ -149,8 +149,17 @@ num=[('百望',bwdf.shape[0]),('京东',jddf.shape[0]),('网易',wydf.shape[0])]
 sumNum=round(sum([i[1] for i in num]),2)
 plt.pie([i[1] for i in num],labels=[i[0]+str(i[1]) for i in num],startangle=90,autopct='%1.1f%%')
 plt.title('百望商城'+date+'订单量:'+str(sumNum))
-plt.annotate(r'$author:zxz$',(-0.5,0),color='#C4C4C4')
+plt.annotate(r'$author:Ariel$',(-0.5,0),color='#C4C4C4')
 plt.legend()
+plt.show()
+
+plt.figure()
+ptnum=pt(df)
+plt.pie([i[1] for i in ptnum],labels=[i[0]+':'+str(i[1]) for i in ptnum],startangle=90,autopct='%1.1f%%')
+plt.title('百望商城'+date+'订单量来源情况')
+plt.annotate(r'$author:Ariel$',(-0.5,0),color='#C4C4C4')
+plt.legend()
+plt.show()
 
 # 销售额饼状图
 plt.figure()
@@ -158,8 +167,9 @@ payMoney=[('百望',round(sum(bwdf.org_money),2)),('京东',round(sum(jddf.org_m
 sumMoney=round(sum([i[1] for i in payMoney]),2)
 plt.pie([i[1] for i in payMoney],labels=[i[0]+str(i[1]) for i in payMoney],startangle=90,autopct='%1.1f%%')
 plt.title('百望商城'+date+'销售额:'+str(sumMoney))
-plt.annotate(r'$author:zxz$',(-0.5,0),color='#C4C4C4')
+plt.annotate(r'$author:Ariel$',(-0.5,0),color='#C4C4C4')
 plt.legend()
+plt.show()
 
 # 营业额
 plt.figure()
@@ -168,13 +178,16 @@ rateMoney=[('百望',round(round(sum(bwdf.org_money),2)-round(sum(bwdf.seller_mo
            ,('网易',round(round(sum(wydf.org_money),2)-round(sum(wydf.seller_money),2),2))]
 sumrate=round(sum([i[1] for i in rateMoney]),2)
 plt.pie([i[1] for i in rateMoney],labels=[i[0]+str(i[1]) for i in rateMoney],startangle=90,autopct='%1.1f%%')
-plt.title('百望商城'+date+'营业额:'+str(sumrate))
-plt.annotate(r'$author:zxz$',(-0.5,0),color='#C4C4C4')
+plt.title('百望商城'+date+'平台管理费:'+str(sumrate))
+plt.annotate(r'$author:Ariel$',(-0.5,0),color='#C4C4C4')
 plt.legend()
+plt.show()
 
 # 营业额与利润率分布图
 plt.figure()
 rate=round(sumrate*100/sumMoney,3)
+
+
 sellerMoney=[('百望',round(sum(bwdf.seller_money),2))
            ,('京东',round(sum(jddf.seller_money),2))
            ,('网易',round(sum(wydf.seller_money),2))]
@@ -193,9 +206,15 @@ else:
     wyrate=''
 plt.ylabel('金额（元）')
 plt.xlabel('百望利润率:'+bwrate+' 京东利润率:'+jdrate+' 网易利润率:15%')
-plt.annotate(r'$author:zxz$',(0,0),color='#C4C4C4')
-plt.title('百望商城'+date+'利润率:'+str(rate)+'%')
-
+plt.annotate(r'$author:Ariel$',(0,0),color='#C4C4C4')
+plt.title(date+'百望商城利润率:'+str(rate)+'%')
 plt.show()
-
 print(date+'新注册会员人数：'+str(xzdfyh(starttime,endtime)))
+
+
+df=xzdfsj(starttime,endtime)
+if df.shape[0]!=0:
+    print('会员升级产品订单：')
+    print(df)
+else:
+    print(date+'号无人购买会员产品')

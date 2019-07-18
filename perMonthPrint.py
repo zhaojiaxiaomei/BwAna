@@ -1,8 +1,9 @@
 # 输出每天的新注册用户情况
 # 输出订单分布情况
 # 输出每天的销售额情况和利润
+
 import matplotlib.pyplot as plt
-from connectMysql.connect import dfInit,xzdfyh
+from connectMysql.connect import dfInit,xzdfyh,tjPt
 import time
 import numpy as np
 
@@ -60,12 +61,12 @@ def printT(date,bw,jd,wy):
         suml.append([bwnums[i][0],bwnums[i][1]+jdnums[i][1]+wynums[i][1]])
     for i in suml:
         plt.text(i[0],i[1]+5,i[1],fontsize=8,ha='center',va='center')
-    plt.text(min([i[0] for i in suml]),0,r'$author:zxz$',fontdict={'size':10,'color':'#C4C4C4'})
+    plt.text(0,max([i[1] for i in suml])-20,r'$author:Ariel$',fontdict={'size':10,'color':'#C4C4C4'})
     plt.title(date+'月份百望商城每天订单情况 总订单：'+str(sum([i[1] for i in suml])))
     plt.xlabel('日期')
     plt.xticks([i[0] for i in bwnums])
     plt.ylabel('订单数量')
-    plt.savefig(date+'每日订单.png')
+    # plt.savefig(date+'每日订单.png')
     plt.legend()
 
     plt.figure(figsize=(9,6))
@@ -76,6 +77,8 @@ def printT(date,bw,jd,wy):
     plt.bar([i[0] for i in sumseller],[i[1] for i in sumseller],bottom=[i[1] for i in sumrate])
     plt.title(date+'月份百望商城每天销售额情况 总销售额：'+str(round(sum([i[1] for i in sumpay]),2)))
     plt.xlabel('日期')
+    print(round(sum([i[1] for i in bwrateMoney]),2))
+    print(round(sum([i[1] for i in bwpayMoney]), 2))
     for i in sumpay:
         if int(i[0])%2==0:
             plt.text(i[0], i[1] + 2500, i[1], fontsize=6, ha='center', va='center',color='b')
@@ -83,10 +86,10 @@ def printT(date,bw,jd,wy):
             plt.text(i[0], i[1] + 1500, i[1], fontsize=6, ha='center', va='center', color='b')
     for i in sumrate:
         plt.text(i[0], i[1] + 2500, i[1], fontsize=6, ha='center', va='center',color='b')
-    plt.text(min([i[0] for i in suml]),0,r'$author:zxz$',fontdict={'size':10,'color':'#C4C4C4'})
+    plt.text(1,max([i[1] for i in sumseller])-2000,r'$author:Ariel$',fontdict={'size':10,'color':'#C4C4C4'})
     plt.ylabel('金额（元）')
     plt.xticks([i[0] for i in sumseller])
-    plt.savefig(date+'销售额.png')
+    # plt.savefig(date+'销售额.png')
     plt.legend()
     plt.show()
 
@@ -106,8 +109,23 @@ def printXzyh(times,d):
     plt.title(d + '月份百望商城每天新人注册情况 总注册人数：'+str(sum([i[1] for i in nums])))
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.xticks([i[0] for i in nums])
-    plt.text(1, 0, r'$author:zxz$', fontdict={'size': 10, 'color': '#C4C4C4'})
+    plt.text(1, 0, r'$author:Ariel$', fontdict={'size': 10, 'color': '#C4C4C4'})
     plt.show()
+
+
+
+
+# 订单来源情况      饼状图
+def printOrderOrg(s,e,date):
+    plt.figure()
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    ptnum = tjPt(s,e)
+    plt.pie([i[1] for i in ptnum], labels=[i[0] + ':' + str(i[1]) for i in ptnum], startangle=90, autopct='%1.1f%%')
+    plt.title(date + '月份百望商城订单量来源情况')
+    plt.annotate(r'$author:Ariel$', (-0.5, 0), color='#C4C4C4')
+    plt.legend()
+    plt.show()
+
 
 if __name__ == '__main__':
     sdate = input('请输入开始时间：')
@@ -117,9 +135,12 @@ if __name__ == '__main__':
     starttime = time.strptime(startdate, "%Y-%m-%d %H:%M:%S")
     starttime = int(time.mktime(starttime))
     timess = times(starttime,jx)
-    # print(timess)
+    endtime=timess[-1][1]
+    # print(tjPt(starttime,endtime))
+
     bw = fx(timess, 1)
     jd = fx(timess, 2)
     wy = fx(timess, 4)
     printT(date,bw,jd,wy)
     printXzyh(timess,date)
+    printOrderOrg(starttime,endtime,date)
