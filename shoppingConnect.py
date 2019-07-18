@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 import numpy as np
 import time
 
-engine = create_engine('mysql+pymysql://bwsc:Baiwangr147@rr-2ze2m13n0o7x5cn83zo.mysql.rds.aliyuncs.com:3306/wnmall')
-
+# engine = create_engine('mysql+pymysql://bwsc:Baiwangr147@rr-2ze2m13n0o7x5cn83zo.mysql.rds.aliyuncs.com:3306/wnmall')
+engine = create_engine('mysql+pymysql://bwsc:Baiwangr147@rm-2ze67hh2abc0d7t0lrw.mysql.rds.aliyuncs.com:3306/wnmall')
 def HandleTime(starttime):
     times=[]
     for i in range(13,21):
@@ -28,7 +28,8 @@ def reDf(times):
     # goods_resource为1是百望 为4网易 为2为京东
         qbsql = '''select o.order_sn,o.addtime,o.uid,s.store_name,o.goods_name,o.goods_id,o.quantity,ob.price,o.freight,ob.org_money,o.money,
                                    ob.integral_cost,ob.platform_coupon_money+ob.dpq_money as discount,
-                                   o.from as payMethod,ob.score_multi_back,o.province,o.seller_money+o.freight seller_money,o.goods_resource
+                                   o.from as payMethod,ob.score_multi_back,o.province,o.seller_money+o.freight seller_money,o.goods_resource,
+                                   o.pt                                   
                                    from wn_order o
                                    left join 
                                    wn_seller_info s on o.seller_id = s.seller_id 
@@ -42,6 +43,7 @@ def reDf(times):
         dfs.append([i[2],df])
     return dfs
 
+
 def dfqb(dfs):
     df=pd.DataFrame()
     for i in dfs:
@@ -54,37 +56,40 @@ def dfqb(dfs):
 # 统计销售前十不同商品id销售数量
 def Difuid(df):
     ids = list(set(df.goods_id))
+    # print(ids)
     paymoney = {}
     for id in ids:
         sellerdf = df[df.goods_id == id]
-        paymoney[id] = round(sum(sellerdf.quantity),2)
+        paymoney[id] = round(sum(sellerdf.quantity), 2)
     paymoney = sortDict(paymoney, 1)
-    if paymoney[9][1]:
-        s=paymoney[9][1]
-    else:
-        s=0
-    newpay=[]
-    if s==1:
+    s = 1
+    if len(paymoney) >= 10:
+        if paymoney[9][1]:
+            s = paymoney[9][1]
+        else:
+            s = 0
+    newpay = []
+    if s == 1:
         for i in paymoney[:10]:
-            if i[1]>1:
+            if i[1] > 1:
                 newpay.append(i)
             else:
                 break
-        paymoney=newpay
-    n=0
-    if len(paymoney)>10:
-        for i in range(10,len(paymoney)+1):
-            if paymoney[i][1]==s:
-                n=i
+        paymoney = newpay
+    n = 0
+    if len(paymoney) > 10:
+        for i in range(9, len(paymoney) + 1):
+            if paymoney[i][1] == s:
+                n = i
             else:
                 break
-        paymoney=paymoney[:n+1]
-    goodNames=[]
+    paymoney = paymoney[:n + 1]
+    goodNames = []
     for i in paymoney:
         sellerdf = df[df.goods_id == i[0]]
-        s=list(set(sellerdf.goods_name))[0]
+        s = list(set(sellerdf.goods_name))[0]
         goodNames.append(s)
-    return paymoney,goodNames
+    return paymoney, goodNames
 
 
 # 统计参与人数 并统计购买力前10客户 bar
@@ -99,31 +104,32 @@ def difyhid(df):
 
 # 支付方式 pie
 def payMethod(df):
-    methods=list(set(df.payMethod))
-    methodnum={}
+    p = df.payMethod
+    p = p.where(p.notnull(), 'ping_wx')
+    methods = list(set(p))
+    df.payMethod = p
+    methodnum = {}
     for method in methods:
-        methoddf=df[df.payMethod==method]
-        methodnum[method]=round(sum(methoddf.money),2)
-    integral_cost=round(sum(df.integral_cost),2)
-    discount=round(sum(df.discount),2)
-    if discount!=0:
-        methodnum['优惠金额']=discount
-    methodnum['购物积分']=integral_cost
-    methodnum=sortDict(methodnum,1)
-
+        methoddf = df[df.payMethod == method]
+        methodnum[method] = round(sum(methoddf.money), 2)
+    integral_cost = round(sum(df.integral_cost), 2)
+    discount = round(sum(df.discount), 2)
+    if discount != 0:
+        methodnum['优惠金额'] = discount
+    methodnum['购物积分'] = integral_cost
+    methodnum = sortDict(methodnum, 1)
     for meth in methodnum:
-        if meth[0]=='erpcoin':
-            meth[0]='金积分支付'
-        elif meth[0]=='jsapi' or meth[0]=='ping_wx':
-            meth[0]='微信支付'
-        elif meth[0]=='erpmoney':
-            meth[0]='百望余额'
-        elif meth[0]=='alipay' or meth[0]=='alipay_wap':
-            meth[0]='支付宝支付'
+        if meth[0] == 'erpcoin' or meth[0] == 'null':
+            meth[0] = '金积分支付'
+        elif meth[0] == 'jsapi' or meth[0] == 'ping_wx' or meth[0]=='ping_wxxcx':
+            meth[0] = '微信支付'
+        elif meth[0] == 'erpmoney':
+            meth[0] = '百望余额'
+        elif meth[0] == 'alipay' or meth[0] == 'alipay_wap':
+            meth[0] = '支付宝支付'
         else:
-            meth[0]=meth[0]
+            meth[0] = meth[0]
     return methodnum
-
 
 
 def dffk(dfs):
@@ -146,6 +152,22 @@ def seller(df):
     return sellernum
 
 
+def pt(df):
+    pts=list(set(df.pt))
+    num=[]
+    for pt in pts:
+        dfpt=df[df.pt==pt]
+        if pt==0:
+            num.append(['微信小程序',dfpt.shape[0]])
+        elif pt==5:
+            num.append(['ios端',dfpt.shape[0]])
+        elif pt==8:
+            num.append(['web端',dfpt.shape[0]])
+        elif pt==6:
+            num.append(['安卓端',dfpt.shape[0]])
+        else:
+            num.append(['其他',dfpt.shape[0]])
+    return num
 
 
 # 统计每日新增用户数量
@@ -181,15 +203,7 @@ if __name__ == '__main__':
     starttime = time.strptime(s, "%Y-%m-%d %H:%M:%S")
     starttime = int(time.mktime(starttime))
     times=HandleTime(starttime)
-    # xz=xzdfyh(times)
-    # print(xz)
-    # dfs=reDf(times)
-    # df=dfqb(dfs)
-    # yh=difyhid(df)
-    # print(yh[0])
-    # print(yh[1])
-    # 分析购买力最高的客户的购物的支付方式 pie
-    # maxdf=df[df.uid == yh[1][0][0]]
-    # pay=payMethod(maxdf)
-    # print(pay)
-    print(xzdfyh(times))
+    dfs=reDf(times)
+    df=dfqb(dfs)
+    dfid=df[df.goods_resource==2]
+    Difuid(df)
